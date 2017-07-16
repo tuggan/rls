@@ -1,3 +1,3 @@
 # rcat
 
-A Rust Cat implementation
+A Rust ls implementation
