@@ -26,6 +26,7 @@ fn print_usage(program: &str, opts: Options) {
     print!("{}", opts.usage(&brief));
 }
 
+
 fn main() {
 
     let args: Vec<String> = env::args().collect();
@@ -51,20 +52,44 @@ fn main() {
         return;
     }
 
-    match fs::read_dir(".") {
-        Err(e) => panic!("Error while reading directory {}", e),
-        Ok(paths) => {
-            for path in paths {
-                match path {
-                    Err(e) => eprintln!("Failed to unwrap path: {}", e),
-                    Ok(p) => {
-                        let st = p.file_name().to_os_string().into_string().unwrap();
-                        if !st.starts_with('.') || all {
-                            print!("{}\t", st);
-                        };
+    let mut paths: Vec<String> = Vec::new();
+
+    for path in matches.free {
+        paths.push(path);
+    }
+
+    let mut print_header = false;
+
+    if paths.len() > 1 {
+        print_header = true
+    }
+
+    for path in paths {
+        if print_header {
+            println!("{}:", path);
+        }
+
+        match fs::read_dir(path) {
+            Err(e) => eprintln!("Error while reading directory {}", e),
+            Ok(dirents) => {
+                for dirent in dirents {
+                    match dirent {
+                        Err(e) => eprintln!("Failed to unwrap path: {}", e),
+                        Ok(p) => {
+                            print!{"{:?}\t", p.file_name()};
+                            match p.file_name().into_string() {
+                                Err(e) => eprintln!("Failed while converting string {:?}", e),
+                                Ok(st) => {
+                                    if !st.starts_with('.') || all {
+                                        print!("{}\t", st);
+                                    };
+                                }
+                            };
+                        }
                     }
                 }
             }
         }
+        print!("\n\n");
     }
 }
